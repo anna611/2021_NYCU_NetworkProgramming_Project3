@@ -10,11 +10,7 @@
 #include <utility>
 #include <fstream>
 
-// using boost::asio::io_service;
 using namespace boost::asio;
-// using namespace boost::asio::ip;
-// using namespace boost::algorithm;
-// using namespace std;
 using boost::asio::io_service;
 using boost::asio::ip::tcp;
 using namespace std;
