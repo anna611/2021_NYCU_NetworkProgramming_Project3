@@ -14,4 +14,5 @@ http_server:http_server.cpp
 	$(CXX) http_server.cpp -o http_server $(CXX_INCLUDE_PARAMS) $(CXX_LIB_PARAMS) $(CXXFLAGS)
 
 clean:
+	rm -f http_server
 	rm -f console.cgi

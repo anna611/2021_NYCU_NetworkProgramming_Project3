@@ -36,6 +36,32 @@ public:
   }
 
 private:
+  tcp::socket socket_;
+  enum { max_length = 1024 };
+  char data_[max_length];
+  char REQUEST_METHOD[20];
+  char REQUEST_URI[1000];
+  char QUERY_STRING[1000];
+  char SERVER_PROTOCOL[100];
+  char HTTP_HOST[100];
+  char SERVER_ADDR[100];
+  char SERVER_PORT[10];
+  char REMOTE_ADDR[100];
+  char REMOTE_PORT[10];
+  char temp[100];
+  char EXEC_FILE[100] = "./";
+  void setclientenv(){
+      setenv("REQUEST_METHOD", REQUEST_METHOD, 1);
+      setenv("REQUEST_URI", REQUEST_URI, 1);
+      setenv("QUERY_STRING", QUERY_STRING, 1);
+      setenv("SERVER_PROTOCOL", SERVER_PROTOCOL, 1);
+      setenv("HTTP_HOST", HTTP_HOST, 1);
+      setenv("SERVER_ADDR", SERVER_ADDR, 1);
+      setenv("SERVER_PORT", SERVER_PORT, 1);
+      setenv("REMOTE_ADDR", REMOTE_ADDR, 1);
+      setenv("REMOTE_PORT", REMOTE_PORT, 1);
+      setenv("EXEC_FILE", EXEC_FILE, 1);
+  }
   void do_read()
   {
     auto self(shared_from_this());
@@ -88,18 +114,9 @@ private:
                 }
             }
             //cerr <<"execfile:" <<EXEC_FILE << endl;
-            setenv("REQUEST_METHOD", REQUEST_METHOD, 1);
-            setenv("REQUEST_URI", REQUEST_URI, 1);
-            setenv("QUERY_STRING", QUERY_STRING, 1);
-            setenv("SERVER_PROTOCOL", SERVER_PROTOCOL, 1);
-            setenv("HTTP_HOST", HTTP_HOST, 1);
-            setenv("SERVER_ADDR", SERVER_ADDR, 1);
-            setenv("SERVER_PORT", SERVER_PORT, 1);
-            setenv("REMOTE_ADDR", REMOTE_ADDR, 1);
-            setenv("REMOTE_PORT", REMOTE_PORT, 1);
-            setenv("EXEC_FILE", EXEC_FILE, 1);
+            setclientenv();
             io_context.notify_fork(io_service::fork_prepare);
-            if (fork() != 0) {
+            if (fork() > 0) {
               io_context.notify_fork(io_service::fork_parent);
               socket_.close();
             } else {
@@ -109,29 +126,13 @@ private:
               dup2(sock, STDIN_FILENO);
               dup2(sock, STDOUT_FILENO);
               socket_.close();
-              if (execlp(EXEC_FILE, EXEC_FILE, NULL) < 0) {
-                std::cout << "Content-type:text/html\r\n\r\n<h1>FAIL</h1>";
-              }
+              execlp(EXEC_FILE, EXEC_FILE, NULL);
+               
             }
             do_read();
           }
         });
   }
-
-  tcp::socket socket_;
-  enum { max_length = 1024 };
-  char data_[max_length];
-  char REQUEST_METHOD[20];
-  char REQUEST_URI[1000];
-  char QUERY_STRING[1000];
-  char SERVER_PROTOCOL[100];
-  char HTTP_HOST[100];
-  char SERVER_ADDR[100];
-  char SERVER_PORT[10];
-  char REMOTE_ADDR[100];
-  char REMOTE_PORT[10];
-  char temp[100];
-  char EXEC_FILE[100] = "./";
 };
 
 class server
